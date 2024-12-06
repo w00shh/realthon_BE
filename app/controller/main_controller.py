@@ -21,7 +21,7 @@ async def read_root():
 @router.post("/check-fishing-zone",response_model=Return_CheckFishingZone)
 async def check_fishing_zone(FishingZone: FishingZone):
     # 해당 위치가 어획 가능한 구역인지 판단하는 API
-    
+
     # 위도 경도를 받아오면 편하게 이 위치에서 가능한지 판별해서 가능한지 불가능한지 return 해주기
     return_val = Return_CheckFishingZone(fishing_avaliability=True, fishing_description="이곳은 어획 가능한 구역입니다.")
 
@@ -105,7 +105,9 @@ async def additional_fish_info(before_prompt: str, current_prompt: str, db_id: s
         print(e)
         return {"error": "이미지를 처리하는 중에 오류가 발생했습니다."}
     
-@router.get("/test")
-async def test():
-    client[collection].insert_one({"test": "test"})
-    return "test"
+@router.get("/get-history")
+async def get_history(device_id: str):
+    result = list(client[collection].find({"device_id": device_id}))
+    for i in result:
+        i["_id"] = str(i["_id"])    
+    return result
