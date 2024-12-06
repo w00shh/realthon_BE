@@ -27,7 +27,7 @@ async def check_fishing_zone(FishingZone: FishingZone):
 
     return return_val
 
-@router.post("/check-fish")#,response_model=Return_FishDescription)
+@router.post("/check-fish",response_model=Return_FishDescription)
 async def check_fish(fish_image: UploadFile, device_id: Optional[str] = None):
     # 물고기 사진을 찍으면 이 물고기를 잡아도 되는지 안되는지, 물고기에 대한 이름과 간단한 정보, 거기서 파생될 수 있는 질문들을 리턴
     # 1. 물고기 사진을 gemini api로 보내서 물고기 종류를 받아온다.
@@ -47,7 +47,11 @@ async def check_fish(fish_image: UploadFile, device_id: Optional[str] = None):
         fish_name = fish_info[0]
         fishing_avaliability = fish_info[1]
         fish_description = fish_info[2]
-        fish_questions = fish_info[3:]
+        fish_questions = ""
+        if isinstance(fish_info[3], list):
+            fish_questions = fish_info[3]
+        else:
+            fish_questions = fish_info[3:]        
 
         # file_name = f"{uuid.uuid4()}_{fish_image.filename}"
         # upload_to_s3(file=fish_image.file, bucket_name="realthon", file_name=file_name) # fish_image.filename으로 저장    
