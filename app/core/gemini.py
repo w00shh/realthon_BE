@@ -10,6 +10,7 @@ def get_gemini_response_image(image: Image.Image):
     ### 최대 여러번 던져보고 안되면 다시 해보기
     prompt = "해당 이미지에 다음과 같은 정보들이 필요해. 1. 물고기의 이름 2. 이 물고기를 잡아도 되는지 안되는지 만약 된다면 True라고 보내주고 아니라면 False라고 보내줘. 3. 이 물고기에 대한 간단한 정보 4. 이 물고기에 대해 사람들이 질문할 수 있는 것들 해당 정보들을 python 리스트처럼 대답만 넣어서 만들어서 보내줘. 다른 추가적인 말은 하지말고 그냥 스트링에서 바로 list로 변환할 수 있게끔 답을 반환해줘.```python 이런식으로 감싸주지 않아도 돼. 그리고 만약 사진이 물고기가 아니라면 해당 프롬프트를 싹다 무시하고 리턴값을 ERROR라고만 해줘. 꼭 한국어로 대답해줘."
     response = model.generate_content([prompt,image])
+    print(response.text)
     if "ERROR" in response.text:
         return "ERROR"
     
