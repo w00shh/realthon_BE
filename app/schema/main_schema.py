@@ -16,3 +16,7 @@ class Return_FishDescription(BaseModel):
     fishing_avaliability: bool = Field(..., example=True)
     fish_description: str = Field(..., example="연어는 맛있어")
     fish_questions: List[str] = Field(..., example=["연어는 먹어도 되나요?", "연어는 무엇을 먹나요?"])
+
+class Return_AdditionalFishInfo(BaseModel):
+    additional_result: str = Field(..., example="네. 연어의 등은 푸릅니다.")
+    additional_fish_info: List[str] = Field(..., example=["연어의 등은 푸릅니다.", "연어의 눈은 둥글어요."] )

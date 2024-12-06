@@ -17,4 +17,5 @@ def upload_to_s3(file: io.BytesIO, bucket_name: str, file_name: str) -> None:
         bucket_name,
         file_name,
         ExtraArgs={"ContentType": "image/jpeg"},
-    )
+)
+
