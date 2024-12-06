@@ -9,32 +9,23 @@ from ..schema.main_schema import FishingZone, Return_FishDescription, Return_Che
 from ..core.image import upload_to_s3
 from ..core.gemini import get_gemini_response_image, get_additional_gemini_response
 from ..db.session import client
+from ..db.forbidden_fishing import fobidden_fishing, haversine
 router = APIRouter()
 
 collection = "fishing"
 
-@router.get("/")
-async def read_root():
-    return {"Hello": "World"}
-
 
 @router.post("/check-fishing-zone",response_model=Return_CheckFishingZone)
 async def check_fishing_zone(FishingZone: FishingZone):
-    # 해당 위치가 어획 가능한 구역인지 판단하는 API
-
-    # 위도 경도를 받아오면 편하게 이 위치에서 가능한지 판별해서 가능한지 불가능한지 return 해주기
+    for i in fobidden_fishing:
+        if haversine(FishingZone.latitude, FishingZone.langitude, i["lattitude"], i["longtitude"]) < 5:
+            return_val = Return_CheckFishingZone(fishing_avaliability=False, fishing_description="이곳은 어획 불가능한 구역입니다.")
+            return return_val
     return_val = Return_CheckFishingZone(fishing_avaliability=True, fishing_description="이곳은 어획 가능한 구역입니다.")
-
     return return_val
 
 @router.post("/check-fish",response_model=Return_FishDescription)
 async def check_fish(fish_image: UploadFile, device_id: Optional[str] = None):
-    # 물고기 사진을 찍으면 이 물고기를 잡아도 되는지 안되는지, 물고기에 대한 이름과 간단한 정보, 거기서 파생될 수 있는 질문들을 리턴
-    # 1. 물고기 사진을 gemini api로 보내서 물고기 종류를 받아온다.
-    # 2. 물고기 종류에 따라서 물고기가 잡아먹어도 되는지 안되는지 판별한다.
-    # 3. 물고기 종류에 따라서 물고기에 대한 간단한 정보를 저장한다.
-    # 4. 물고기 종류에 따라서 물고기에 파생될 수 있는 질문들을 저장한다
-    # 물고기 정보
     try:
         contents = fish_image.file.read()
         image = Image.open(io.BytesIO(contents))
@@ -62,8 +53,9 @@ async def check_fish(fish_image: UploadFile, device_id: Optional[str] = None):
             "fish_description": fish_description,
             "fish_questions": fish_questions
         }
-        result = client[collection].insert_one({"device_id": device_id, "image_query_result":fish_info_dict, "image_query_result":[]})
-
+        print(fish_info_dict)
+        result = client[collection].insert_one({"device_id": device_id, "image_query_result":fish_info_dict, "queries":[]})
+        
         # Fish_Description 객체 생성
         fish_info = Return_FishDescription(
             fish_name=fish_name,
@@ -97,9 +89,9 @@ async def additional_fish_info(before_prompt: str, current_prompt: str, db_id: s
         db_id = ObjectId(db_id)
         result = client[collection].update_one(
             {"_id": db_id},  # 필터
-            {"$push": {"image_query_result": tmp_dic}}  # 값 추가
+            {"$push": {"queries": tmp_dic}},  # 기존 데이터 유지하며 값 추가
+            upsert=True  # 문서가 없으면 새로 생성
         )
-
         return Return_AdditionalFishInfo(additional_result=return_val[0], additional_fish_info=additional_fish_info_res)
     except Exception as e:
         print(e)
