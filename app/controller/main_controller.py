@@ -6,7 +6,10 @@ import io
 from ..schema.main_schema import FishingZone, Return_FishDescription, Return_CheckFishingZone, Return_AdditionalFishInfo
 from ..core.image import upload_to_s3
 from ..core.gemini import get_gemini_response_image, get_additional_gemini_response
+from ..db.session import client
 router = APIRouter()
+
+collection = "fishing"
 
 @router.get("/")
 async def read_root():
@@ -69,3 +72,8 @@ async def additional_fish_info(before_prompt: str, current_prompt: str):
     except Exception as e:
         print(e)
         return {"error": "이미지를 처리하는 중에 오류가 발생했습니다."}
+    
+@router.get("/test")
+async def test():
+    client[collection].insert_one({"test": "test"})
+    return "test"
